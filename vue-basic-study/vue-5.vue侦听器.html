@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-5.vue侦听器</title>
+    <script src="Vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
+ 
+</head>
+<body>
+    <div id="app">
+        <h3>1.概述</h3>
+        <div>
+            vue侦听器:也叫监视,它是当值发生改变的时候就会调用回调函数并执行的相关操作。
+            主要是观测props和data里的变量值,当它们发生改变时执行相应的回调。
+            当需要在数据变化时执行异步或开销较大的操作时这个方式是最有用的。
+            侦听器watch是和data同级的数据相关的配置选项,
+            
+        </div>
+        <h3>2.使用</h3>
+        <div>   
+
+        </div>
+        <h3>3.特点</h3>
+        <div>
+            (1)通过监控某个数值的变化,当值发生改变的时候,就会调用回调函数并执行的相关操作。主要是观测props和data里的变量值,当它们发生改变时执行相应的回调。
+            (2)不支持缓存,数据值发生改变时,直接会触发相应的回调操作。
+            (3)支持异步；监听的函数接收两个参数,第一个参数是最新的值；第二个参数是输入之前的值。
+            (4)可以传入一个配置对象{},里面有两个常用选项immediate:true组件加载立即触发回调函数执行,deep:true的意思就是深入监听,任何修改obj里面任何一个属性都会触发这个监听器里的 handler方法来处理逻辑
+        </div>
+        <!-- 练习 -->
+        <hr>
+        <h3>实例练习</h3>
+        <div>
+            姓：<input type="text" v-model="firstName"><br>
+            名：<input type="text" v-model="lastName"><br>
+            姓名(监视)：<input type="text" v-model="watchName"><br>
+        </div>
+        <p>
+            Ask a yes/no question:
+            <input v-model="question">
+          </p>
+          <p>{{ answer }}</p>
+    </div>
+    
+<!-- js -->
+<script>
+const vm = new Vue({
+    el:'#app',
+    data:{
+        msg:'欢迎开始学习vue' , 
+        firstName:'',
+        lastName:'',
+        question: '',
+        answer: 'I cannot give you an answer until you ask a question!'
+        
+    },
+    watch: {
+        firstName:function(val){
+            this.watchName = val + ' ' + this.lastName
+        },
+        lastName:function(val){
+            this.watchName = this.firstName + ' ' + val
+        },
+        // 如果 `question` 发生改变，这个函数就会运行
+        question: function (newQuestion, oldQuestion) {
+            this.answer = 'Waiting for you to stop typing...'
+            this.debouncedGetAnswer()
+        }
+    },
+    created: function () {
+        // `_.debounce` 是一个通过 Lodash 限制操作频率的函数。
+        // 在这个例子中，我们希望限制访问 yesno.wtf/api 的频率
+        // AJAX 请求直到用户输入完毕才会发出。想要了解更多关于
+        // `_.debounce` 函数 (及其近亲 `_.throttle`) 的知识，
+        // 请参考：https://lodash.com/docs#debounce
+        this.debouncedGetAnswer = _.debounce(this.getAnswer, 500)
+    },
+    methods: {
+        getAnswer: function () {
+        if (this.question.indexOf('?') === -1) {
+            this.answer = 'Questions usually contain a question mark. ;-)'
+            return
+        }
+        this.answer = 'Thinking...'
+        var vm = this
+        // 异步操作 
+        axios.get('https://yesno.wtf/api')
+            .then(function (response) {
+            vm.answer = _.capitalize(response.data.answer)
+            })
+            .catch(function (error) {
+            vm.answer = 'Error! Could not reach the API. ' + error
+            })
+        }
+    }
+   
+    
+})        
+</script>
+</body>
+</html>

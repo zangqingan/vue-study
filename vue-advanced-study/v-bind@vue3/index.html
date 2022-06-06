@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Vue双向数据绑定原理实现</title>
+</head>
+<body>
+	<!-- <h1 id="name"></h1>
+	<input type="text">
+	<input type="button" value="改变data内容" id="changedata">
+
+	<hr> -->
+	<div id="app">
+		
+	</div>
+	<script type="module" src="./index.js">
+
+	</script>
+<!-- <script type="module">
+	
+	import {observe} from './observer.js';
+	import Watcher from './watcher.js';
+	
+	// 跟vue构造函数类似就是 编译器。
+	function Vue (data, el, exp) {
+	    this.data = data;
+			//将数据变的可观测
+	    observe(data);       
+			// 初始化模板数据的值  获取值            
+	    el.innerHTML = this.data[exp];   
+			// 将这个指令初始化为一个订阅者，后续 exp 改变时，就会触发这个更新回调，从而更新视图        
+	    new Watcher(this, exp, function (value) {
+	        el.innerHTML = value;
+	    });
+	    return this;
+	}
+
+	var ele = document.querySelector('#name');
+	let input  = document.getElementById('changedata')
+  var myVue = new Vue({
+		name: 'hello world'
+	}, ele, 'name');
+ 	
+	//改变输入框内容
+  input.oninput = function (e) {
+    	myVue.data.name = e.target.value
+    }
+	//改变data内容
+	input.onclick = function (){
+		myVue.data.name = "修改数据"
+	
+	}
+</script> -->
+</body>
+</html>

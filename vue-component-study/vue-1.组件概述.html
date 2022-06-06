@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-1.组件概述</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script> 
+    <script src="../vue-basic-study/Vue.js"></script>
+</head>
+<body>
+    <div id="app">
+      <h3>1. 概述</h3>
+      <div>
+            所谓组件化编码,它是一种抽象,就是把页面拆分成一个个小的功能块封装到一起,也就是封装成了一个组件。
+            在 Vue 里,一个组件本质上是一个拥有预定义选项的带名字可复用的一个 Vue 实例。
+            预定义选项跟 new Vue() 创建的实例接收相同的配置选项,只是没有el选项,并且data选项必须是一个函数并将数据对象return出去,这样可以确保每一个组件维护一份被返回对象的独立的拷贝。
+
+            组件的出现就是为了拆分vue实例的代码量的,根据不同的功能来划分不同的组件,将来需要什么功能就调用对应的组件即可。<br>
+            在后面脚手架创建的vue项目中组件就是一个 .vue 单文件组件,它可以复用。
+            
+            在vue应用中会把所有的组件都抽象成一颗组件树(和dom树类似)。
+
+            组件化和模块化区别：
+            模块化是从代码逻辑的角度来划分的,方便代码分层开发,保证每一个功能模块的职能单一。<br>
+            组件化是从ui页面的角度来划分的,方便ui组件的重用。<br>
+      </div>
+      <h3>2. 组件创建和使用</h3>
+      <div>
+          <h4>1.全局注册</h4>
+          <div>
+                <h5>1.定义注册</h5>
+                <p>
+                  全局注册的组件可以用在其被注册之后的任何 (通过 new Vue) 新创建的 Vue 根实例,也包括其组件树中的所有子组件的模板中。
+                  使用vue提供的全局方法 Vue.component('组件名',构造器对象)在根实例创建之前发生。
+                  接收两个参数:
+                    参数一:'组件名'要使用 kebab-case 短横线分隔命名的方法,这样使用时同名使用。
+                    参数二:构造器对象,跟vue实例配置对象类似的一个对象。
+                  
+                  // 注册组件,传入一个扩展过的构造器vue2.x之后可以直接传入一个对象而不用使用该方法创建(vue自动帮忙调用Vue.extend()方法)。
+                  Vue.component('my-component', Vue.extend({ /* ... */ }))
+                  
+                  // 注册组件,传入一个选项对象 (自动调用 Vue.extend)
+                  Vue.component('my-component', { /* ... */ })
+                </p>
+                <h5>2.使用</h5>
+                <p>
+                    在Vue实例的作用范围内都可以使用注册好的组件,通过将组件的名称写作HTML标签的形式。
+                    <!-- <组件名></组件名> --><br>
+                </p>
+          </div>
+          <h4>2.局部注册</h4>
+          <div>
+                局部注册是在components配置选项中定义的组件,只能在当前定义组件内使用,而其子组件中不可用。
+                {//组件的配置对象
+                    ....
+                    //components选项
+                    components:{
+                        '组件名',构造器对象,
+                        'm-com':{options}
+                    }
+                } 
+                使用和全局注册一样的以html标签的形式
+          </div>
+      </div>
+
+      <!-- 实战练习 -->
+      <hr>
+        <!-- 3.使用组件 -->
+        <parent></parent>
+       <hr>
+        <com2></com2>
+        <hr>
+        <globalcom></globalcom>
+    </div>
+
+<!-- js -->
+<script>
+
+// 1.创建组件构造器对象
+const com = Vue.extend({
+    template:`
+    <div>
+        <h2>我是com组件的标题</h2>
+        <p>我是com组件的内容hello</p>
+        <p>我是com组件的内容hi</p>
+        <p>我是com组件我也可以使用全局组件globalcom</p>
+        <globalcom></globalcom>
+    </div>
+    `
+})
+// 创建一个组件构造器对象
+const parent ={
+    template:`
+    <div>
+        <p>我是父组件我也可以使用全局组件globalcom</p>
+        <globalcom></globalcom>
+        <h2>我是父组件</h2>
+        <p>我是父组件我注册了com子组件</p>
+        <com></com>
+        
+    </div>
+    ` , 
+    //组件的子组件
+    components:{
+        'com':com
+    }
+}
+//2.注册组件(这里注册就是全局组件) 全局注册的行为必须在根 Vue 实例 (通过 new Vue) 创建之前发生。
+Vue.component('globalcom',{
+    template:`
+    <div>
+        <h2>我是全局注册的组件globalcom其它组件都可以使用</h2>
+        <p>我是全局注册的组件globalcom其它组件都可以使用</p>
+        <p>{{msg}}</p>
+    </div>
+    `,
+    data(){
+        return{
+            msg:'我是全局注册的组件globalcom中的data的数据'
+        } 
+    }
+           
+})
+const vm = new Vue({
+    el:'#app',
+    data:{
+        msg:'欢迎开始学习vue' , 
+    },
+    // 2.注册组件(这里是局部注册组件)
+    components:{
+        //'组件名':配置对象
+        'parent':parent,
+        // 语法糖注册
+        'com2':{
+            template:`
+            <div>
+                <h2>我是com2</h2>
+                <p>我是com2</p>
+                <p>{{msg}}</p>
+            </div>
+            `,
+            data(){
+                return{
+                    msg:'我是com2组件中的data的数据'
+                } 
+            }
+            
+        }
+    }
+        
+})        
+</script>
+</body>
+</html>

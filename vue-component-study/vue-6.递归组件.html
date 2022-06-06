@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue组件高级之递归组件</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script> 
+    <script src="../vue-basic-study/Vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h3>1. 递归组件</h3>
+        <div>
+           所谓递归组件就是说组件在自己的模板内调用自己,但是要给组件的name选项设置值,也就是设置组件的名字。
+           不过要注意给一个条件来限制递归数量,不然会抛出栈内存溢出错误。可以用来开发一些未知层级关系的独立组件,比如级联选择器和树形控件。
+        </div>
+        <hr>
+        <my-com :count="1"></my-com>
+
+    </div>
+
+<!-- js -->
+<script>
+
+Vue.component('my-com',{
+    name:'my-com',
+    props:{
+        count:{
+            type:Number,
+            default:1
+        }
+    },
+    template:`    
+    <div class="child">
+        <my-com :count="count + 1" v-if="count < 3"></my-com>
+    </div>`,
+})
+const vm = new Vue({
+    el:'#app',
+    data:{
+        msg:'欢迎开始学习vue' , 
+    },
+})        
+</script>
+</body>
+</html>

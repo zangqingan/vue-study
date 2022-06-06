@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-2.vue进阶之过滤器</title>
+    <script src="../vue-basic-study/Vue.js"></script>
+ 
+</head>
+<body>
+    <div id="app">
+        <h3>1.概述</h3>
+       <div>
+            Vue.js 允许你自定义过滤器,用来对一些常见的文本格式化。
+            过滤器可以用在两个地方:双花括号插值和 v-bind 表达式,跟在“管道”符号 | 后面,添加在 JavaScript 表达式的尾部。
+            过滤器可以串联使用管道符号 “|” 分隔即可。
+            <!-- 在双花括号中 -->
+            {{ message | capitalize }}
+
+            <!-- 在 `v-bind` 中 -->
+            v-bind:id="rawId | formatId"
+
+            过滤器函数总接收表达式的值 (之前的操作链的结果) 作为第一个参数。
+            如下:
+                message | filterA | filterB 
+            filterA过滤器函数将会收到 message 的值作为第一个参数。
+            filterB 将接收filterA 的结果作为过滤器函数的第一个参数。以此类推知道没有过滤器。
+       </div>
+       <h3>2.过滤器的定义</h3>
+       <div>
+           过滤器是和组件的定义一样的分为全局过滤器和局部过滤器两种。
+           不过当全局过滤器和局部过滤器重名时,会采用局部过滤器,也就是局部过滤器会覆盖全局过滤器。
+           <h4>1.全局过滤器</h4>
+           <div>
+                在创建 Vue 实例之前全局定义过滤器:Vue.filter('filterName', callback)
+                Vue.filter('capitalize', function (value) {
+                    if (!value) return ''
+                    value = value.toString()
+                    return value.charAt(0).toUpperCase() + value.slice(1)
+                })
+           </div>
+           <h4>2.组件过滤器</h4>
+           <div>
+               在一个组件的选项中定义本地的过滤器:它是和data选项同级的filters选项下,它是一个对象里面是过滤器的名值对。
+               filters:{
+                    filterName:callback,
+                    <!-- es6写法 -->
+                    filterName(value){},
+
+               }
+            </div>
+       </div>
+
+
+
+       <!-- 实战练习 -->
+       <hr>
+       <div>
+            {{ message | capitalize }}
+       </div>
+
+
+
+
+    </div>
+    
+<!-- js -->
+<script>
+// 
+Vue.filter('capitalize', function (value) {
+  if (!value) return ''
+  value = value.toString()
+  return value.charAt(0).toUpperCase() + value.slice(1)
+})
+const vm = new Vue({
+    el:'#app',
+    data:{
+        message:'studyvue' , 
+        
+    },
+    filters: {
+        capitalize: function (value) {
+            if (!value) return ''
+            value = value.toString()
+            return value.charAt(0).toUpperCase() + value.slice(1)
+        }
+    }
+  
+    
+})        
+</script>
+</body>
+</html>

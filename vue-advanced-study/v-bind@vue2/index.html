@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Vue响应式</title>
+</head>
+<body>
+	<div id="app">
+    {{msg}} <br />
+    {{age}} <br />
+    <div v-text="msg"></div>
+    <input v-model="msg" type="text" />
+  </div>
+
+
+	<!-- <script src="./core/dep.js"></script>
+  <script src="./core/watcher.js"></script>
+  <script src="./core/compiler.js"></script>
+  <script src="./core/observer.js"></script> -->
+	<!-- 引入自己定义的vue -->
+	<script type="module">
+		import Vue from './index.js';
+		let vm = new Vue({
+			el: '#app',
+			data: {
+				msg: '123',
+				age: 21,
+			},
+		})
+
+	</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自定义实时时间转换指令v-time</title>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <h4>一、实时时间转换指令v-time</h4>
+    <p>
+        传入一个时间戳，和当前的时间戳比较。
+        两者差值：
+          一分钟以前显示：刚刚
+          1m-1h之间显示：xx分钟前
+          1h-1d之间显示：xx小时前
+          1d-1月(31天)之间显示：xx天前
+          大于一个月显示：xx年xx月xx日
+        一般服务端存储的时间格式是unix时间戳即从1970年1月1日（UTC/GMT的午夜）开始所经过的秒数。
+        一分钟表示为UNIX时间戳格式为：60秒，一个小时表示为UNIX时间戳格式为：3600秒，一天表示为UNIX时间戳为86400秒
+        前端拿到这种数据后肯定是要进行转换为可读的时间格式的。
+        注意：1 秒=1000 毫秒 ==》 1s = 1000ms
+
+    </p>
+    <hr>
+    <div v-time="timeNow"></div>
+    <div v-time="timeBefore"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <script src="./time.js"></script>
+  <script src="./index.js"></script>
+  
+</body>
+</html>

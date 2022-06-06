@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>9.vue进阶之单文件组件</title>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script>  -->
+    <script src="../vue-basic-study/Vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h3>1.单文件组件概述</h3>
+        <div>
+            到目前位置我们都是像jQuery一样引入vue文件在html中使用全局注册的方式声明组件,这种方式在很多中小规模的项目中运作的很好。
+            但是如果写的页面很多逻辑又复杂时就比较麻烦了
+            下面这些缺点将变得非常明显:
+                全局定义 (Global definitions) 强制要求每个 component 中的命名不得重复
+                字符串模板 (String templates) 缺乏语法高亮,在 HTML 有多行的时候,需要用到丑陋的反斜杠\ 
+                不支持 CSS (No CSS support) 意味着当 HTML 和 JavaScript 组件化时,CSS 明显被遗漏
+                没有构建步骤 (No build step) 限制只能使用 HTML 和 ES5 JavaScript,而不能使用预处理器,如 Pug (formerly Jade) 和 Babel
+            为此文件扩展名为 .vue 的 single-file components (单文件组件) 为以上所有问题提供了解决方法,并且还可以使用 webpack 或 Browserify 等构建工具。
+            也就是说单文件组件是把一个组件的结构、逻辑、样式全放在一个文件扩展名为 .vue的文件里。最终其实输出的是一个vue组件。
+            但是显然浏览器是无法识别这种 .vue文件的,这时候就需要前端构建工具了,vue使用的是 webpack构建工具的vue-loader将Vue 单文件组件转换为 JavaScript 模块。
+            也就是说Vue Loader 是一个 webpack 的 loader,它允许我们以一种名为单文件组件 (SFCs)的格式撰写 Vue 组件。
+            通过组合使用 webpack 和 vue-loader 编写 Vue.js 的应用程序能带来一个现代,灵活并且非常强大的前端工作流程。
+            当然vue官方提供了vue-CLI 脚手架工具会为你搞定大多数工具的配置问题,同时也支持细粒度自定义配置项。  
+            <h4>1.单文件组件组成规范</h4>
+            <div>
+                一个 .vue文件(单文件组件)文件是一个自定义的文件类型,用类 HTML 语法描述一个 Vue 组件。
+                每个 .vue 文件包含三种类型的顶级语言块 template、script 和 style,vue-loader 会解析文件,提取每个语言块,如有必要会通过其它 loader 处理,最后将他们组装成一个 ES Module,它的默认导出是一个 Vue.js 组件选项的对象。
+                <h5>1.模板template</h5>
+                <div>
+                    写html页面结构的地方,每个文件最多一个,
+                    包含的内容会被vue-template-compiler预处理为 JavaScript 渲染函数,
+                    并最终注入到从 script 导出的组件中。
+                </div>
+                <h5>2.脚本script</h5>
+                <div>
+                    写vue组件配置对象的地方也就是写js逻辑的地方,会当作一个 ES Module 来执行。
+                    每个文件最多一个,默认导出一个vue.js组件配置对象。
+                    任何匹配 .js 文件(或通过它的 lang 特性指定的扩展名)的 webpack 规则都将会运用到这个元素内。
+                </div>
+                <h5>3.样式style</h5>
+                <div>
+                    写css样式的地方。每个文件可以有多个style标签,默认匹配:/\.css$/。
+                    标签有 scoped 属性时,它的 CSS 只作用于当前组件中的元素。也就是本地样式。
+                    任何匹配 .css 文件(或通过它的 lang 特性指定的扩展名)的 webpack 规则都将会运用到这个元素内。
+                </div>
+                <h5>4.注释</h5>
+                <div>
+                    在语言块中使用该语言块对应的注释语法 (HTML、CSS、JavaScript、Jade 等)。
+                    顶层注释使用 HTML 注释语法,<!-- comment contents here -->。
+                </div>
+            </div>
+        </div>
+        <h3>2.vue-loader</h3>
+        <div>
+            有了 .vue 组件,我们就进入了高级 JavaScript 应用领域,又通过vue-loader解决了浏览器识别的问题。
+            同时vue-loader也帮助我们在 .vue 组件中编写高级语法特性的代码,比较常见的特性如下:     
+                默认支持 ES2015。
+                允许对 Vue 组件的组成部分使用其它 webpack loader,比如对 style 使用 Sass 和对 template 使用 Jade。
+                .vue 文件中允许自定义节点,然后使用自定义的 loader 进行处理。
+                把 style 和 template 中的静态资源当作模块来对待,并使用 webpack loader 进行处理。
+                对每个组件模拟出 CSS 作用域。
+                支持开发期组件的热重载。
+            目前vue-loader版本已经v15 以上了,和v14版本的有出入但是本质是没什么改变的。
+            <h4>1.起步</h4>
+            <div>
+                你乐于从零开始创建你自己的 webpack 配置,那么请继续阅读这篇指南:https://vue-loader.vuejs.org/zh/guide/#vue-cli
+                安装:npm install -D vue-loader vue-template-compiler
+                vue-template-compiler的作用是把单文件组件中template元素中的内容预处理为 JavaScript 渲染函数,并最终注入到从 script 导出的组件中。
+                安装好之后一定要在 webpack 配置文件中添加 Vue Loader 的插件,这个插件是必须的！它的职责是将你定义过的其它规则复制并应用到 .vue 文件里相应语言的块。
+                例如:如果你有一条匹配 /\.js$/ 的规则,那么它会应用到 .vue 文件里的 script 块。
+                例如:如果你有一条匹配 /\.css$/ 的规则,那么它会应用到 .vue 文件中的 style 块。
+                // webpack.config.js
+                //引入vue-loader加载器
+                const { VueLoaderPlugin } = require('vue-loader')
+                module.exports = {
+                    module: {
+                        rules: [
+                            // 解析.vue 文件的规则
+                            {
+                                test: /\.vue$/,
+                                loader: 'vue-loader'
+                            },
+                            // 它会应用到普通的 `.js` 文件
+                            // 以及 `.vue` 文件中的 `script` 块,前提是引入了new VueLoaderPlugin()插件。
+                            {
+                                test: /\.js$/,
+                                loader: 'babel-loader'
+                            },
+                            // 它会应用到普通的 `.css` 文件
+                            // 以及 `.vue` 文件中的 `style` 块,前提是引入了new VueLoaderPlugin()插件。
+                            {
+                                test: /\.css$/,
+                                use: [
+                                'vue-style-loader',
+                                'css-loader'
+                                ]
+                            }
+                        ]
+                    },
+                    plugins: [
+                        // 请确保引入这个插件！
+                        new VueLoaderPlugin()
+                    ]
+                }
+
+            </div>
+            <h4>2.常见配置</h4>
+            <div>
+                <h5>1.使用预处理器</h5>
+                <div>
+                    在 webpack 中,所有的预处理器需要匹配对应的 loader。而Vue Loader 允许你使用其它 webpack loader 处理 Vue 组件的某一部分。
+                    它会根据 .vue文件中style元素的 lang 特性以及你 webpack 配置中的规则自动推断出要使用的 loader。
+                    style lang="sass" 声明style语言块中使用 Sass 语法编写样式,为了通过 Sass/SCSS 编译我们的 style 标签。
+                    就需要sass-loader node-sass 两个包,
+                    安装:npm install -D sass-loader node-sass
+                    在webpack配置文件中配置如下,这样这个style语言块里的任何内容都会被 webpack 当作在一个 *.sass 文件中一样被处理。
+                    注意 sass-loader 会默认处理不基于缩进的 scss 语法,为了使用基于缩进的 sass 语法需要向 loader 传递选项才行。
+                    // webpack.config.js -> module.rules
+                    {
+                        test: /\.sass$/,
+                        use: [
+                            'vue-style-loader',
+                            'css-loader',
+
+                            {
+                                loader: 'sass-loader',
+                                options: {
+                                    indentedSyntax: true,
+                                    // sass-loader version >= 8
+                                    sassOptions: {
+                                        indentedSyntax: true
+                                    }
+                                }
+                            }
+                        ]
+                    }
+
+                    style lang="scss" 
+                    安装:npm install -D sass-loader node-sass
+                    配置:
+                    // webpack.config.js -> module.rules
+                    {
+                        test: /\.scss$/,
+                        use: [
+                          'vue-style-loader',
+                          'css-loader',
+                          'sass-loader'
+                        ]
+                    }
+
+                    style lang="less" 
+                    安装:npm install -D less less-loader
+                    配置:
+                    // webpack.config.js -> module.rules
+                    {
+                        test: /\.less$/,
+                        use: [
+                            'vue-style-loader',
+                            'css-loader',
+                            'less-loader'
+                        ]
+                    }
+
+                    style lang="stylus" 
+                    安装:npm install -D stylus stylus-loader
+                    配置:
+                    // webpack.config.js -> module.rules
+                    {
+                        test: /\.styl(us)?$/,
+                        use: [
+                          'vue-style-loader',
+                          'css-loader',
+                          'stylus-loader'
+                        ]
+                    }
+
+                    babel转义
+                    安装:npm install -D babel-core babel-loader
+                    配置:
+                    // webpack.config.js -> module.rules
+                    {
+                        test: /\.js?$/,
+                        loader: 'babel-loader'
+                    }
+                    
+                </div>
+                <h5>2.热加载</h5>
+                <div>
+                    “热重载”不只是当你修改文件的时候简单重新加载页面。启用热重载后,当你修改 .vue 文件时,该组件的所有实例将在不刷新页面的情况下被替换。
+                    它甚至保持了应用程序和被替换组件的当前状态！当你调整模版或者修改样式时,这极大地提高了开发体验。
+                    vue-loader的热重载默认就是开启的,所以也不用关心什么其实。
+                    可以设置 hotReload: false 选项来显式地关闭热重载。
+                    module: {
+                        rules: [
+                          {
+                            test: /\.vue$/,
+                            loader: 'vue-loader',
+                            options: {
+                              hotReload: false // 关闭热重载
+                            }
+                          }
+                        ]
+                    }
+                </div>
+
+            </div>
+            <h4>3.使用webpack实现对vue项目的构建</h4>
+            <div>
+                前面的学习中以及知道单文件组件的组成规范,以及如何使用vue-loader解析,同时vue-loader也允许其它webpack loader帮忙。
+                所以如果想要使用webpack构建一个还算完整的工程化vue项目,那大概需要如下包甚至更多。
+                    npm install --save vue
+                    npm install --save-dev vue-loader //.vue文件
+                    npm install --save-dev vue-style-loader //样式
+                    npm install --save-dev sass-loader node-sass //css预处理sass
+                    npm install --save-dev vue-template-compiler //模板编译
+                    npm install --save-dev vue-hot-reload-api //热加载
+                    npm install --save-dev @babel/core
+                    npm install --save-dev @babel/preset-env
+                    npm install --save-dev @babel/plugin-transform-runtime
+                    npm install --save-dev babel-loader
+                把这些安装完成后,就可以在webpack配置文件中配置对 .vue文件和scss和es6的支持解析。配置好就可以使用 .vue文件了,记住这时每个.vue文件就是一个组件。
+                不知道版本安装存在兼容问题,因为现在webpack已经到5版本了。
+                这些包合用的版本如下:
+                "devDependencies": {
+                    "@babel/core": "^7.16.0",
+                    "@babel/plugin-transform-runtime": "^7.16.4",
+                    "@babel/preset-env": "^7.16.4",
+                    "babel-loader": "^8.2.3",
+                    "css-loader": "^6.5.1",
+                    "file-loader": "^6.2.0",
+                    "html-webpack-plugin": "^5.5.0",
+                    "mini-css-extract-plugin": "^2.4.4",
+                    "node-sass": "^6.0.1",
+                    "sass-loader": "^12.3.0",
+                    "style-loader": "^3.3.1",
+                    "url-loader": "^4.1.1",
+                    "vue-hot-reload-api": "^2.3.4",
+                    "vue-loader": "^15.9.8",
+                    "vue-style-loader": "^4.1.3",
+                    "vue-template-compiler": "^2.6.14",
+                    "webpack": "^5.64.0",
+                    "webpack-cli": "^4.9.1",
+                    "webpack-dev-server": "^4.5.0"
+                },
+                "dependencies": {
+                    "vue": "^2.6.14"
+                }
+                至此算是已经实现了一个简易的脚手架功能了,但是vue官方是提供了脚手架工具vue-CLI的,本质上它也是基于这些包封装的。
+                只是非常方便我们构建vue项目,也容易上手。具体见vue-CLI的学习。
+            </div>
+        </div>
+        
+    </div>
+
+
+</body>
+</html>

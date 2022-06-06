@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>7.vue进阶之异步更新队列</title>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script>  -->
+    <script src="../vue-basic-study/Vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h3>1. 异步更新队列概述</h3>
+        <div>
+           异步更新队列:所谓异步更新队列是指 在Vue中更新 DOM 是批量异步执行的。
+           也就是说vue侦听到数据发生变化时并不是直接更新DOM,而是开启一个队列,并缓冲在同一事件循环中发生的所有数据,改变减少操作DOM的次数。
+           在缓冲时会去除重复数据,从而避免不必要的计算和DOM操作,然后在下一个事件循环tick中,vue才刷新队列并执行实际工作即更新DOM的内容。
+           Vue 在内部对异步队列尝试使用原生的 Promise.then、MutationObserver 和 setImmediate,如果执行环境不支持,则会采用 setTimeout(fn, 0) 代替。
+           也就是说在更新数据后立马去获取DOM中的内容是会发现获取的依然还是旧的内容。
+           而如果想要更新后的 DOM 内容就需要使用vue提供的方法。
+
+
+           <h4>1. Vue.nextTick(callback)</h4>
+           <div>
+                在修改数据之后立即使用这个方法，就可以马上获取更新后的 DOM。而不用等异步队列更新完成
+                callback是在DOM更新完成之后调用的,相当于直接跳过了异步队列的等待。
+           </div>
+           <h4>2. vm.$nextTick(callback)</h4>
+           <div>
+               使用vue实例属性$nextTick(callback),返回的一个 Promise。回调函数中的 this 将自动绑定到当前的 Vue 实例上。
+               callback是在DOM更新完成之后调用的,相当于直接跳过了异步队列的等待。
+           </div>
+           <h4>3.nextTick实现原理</h4>
+           <div>
+                将传入的回调函数包装成异步任务，异步任务又分微任务和宏任务，为了尽快执行所以优先选择微任务。
+                nextTick 提供了四种异步方法 Promise.then、MutationObserver、setImmediate、setTimeOut(fn,0)。
+                vue会判断当前环境优先支持的异步方法优先选择微任务。
+                1.首先将调用nextTick的回调添加到一个callbacks数组中。
+                2.设置一个标识pending,用来标识当前是否有 nextTick 在执行，同一时间只能有一个执行
+                3.循环判断执行回调
+           </div>
+        </div>
+
+
+
+
+        <!-- 实战练习 -->
+        <hr>
+        <div>
+            <p>1.DOM内容还没更新</p>
+            <div id="msgdiv">{{msg}}</div>
+            <button @click="getmsgDiv">点击修改div内容</button>
+        </div>
+        <hr>
+        <div>
+            <p>2. DOM元素隐藏但是还是能获取到内容</p>
+            <div id="div" v-if="showDiv">这是一段文本</div>
+            <button @click="getDiv">点击隐藏div</button>
+        </div>
+    </div>
+
+<!-- js -->
+<script>
+const vm = new Vue({
+    el:'#app',
+    data:{
+        msg:'欢迎开始学习vue' , 
+        showDiv:true
+    },
+    methods: {
+        getDiv(){
+            // 修改数据,但是 DOM 还没有更新
+            this.showDiv = false
+            // 这时获取 DOM 内容
+            let text = document.getElementById('div').innerHTML
+            console.log(text)//'这是一段文本'
+            // DOM更新完成后div已经被隐藏了所以报错。
+            this.$nextTick( () => {
+                let text = document.getElementById('div').innerHTML
+                console.log(text)//TypeError: document.getElementById(...) is null
+            })
+        },
+        getmsgDiv(){
+            // 数据改变了
+            this.msg = '我是修改后的msg数据'
+             // 这时获取 DOM 内容，发现还是旧的内容
+            let msgtext = document.getElementById('msgdiv').innerHTML
+            console.log('获取到的内容是修改前的,因为DOM还没更新:',msgtext)// "欢迎开始学习vue"
+            // 回调函数是在 DOM 更新完成后被调用。
+            this.$nextTick( () => {
+                let text = document.getElementById('msgdiv').innerHTML
+                console.log('获取到的内容是修改后的,因为DOM已经更新:',text)//'这是一段文本'
+            })
+        }
+    },
+})        
+</script>
+</body>
+</html>

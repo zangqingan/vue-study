@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自定义指令v-birthday</title>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <h4>一、自定义指令v-birthday</h4>
+    <p>
+        接收一个出生日期的时间戳，将其转换为已经xx岁xx个月xx天。
+        （1）将出生日期的时间戳都转化为Date，分别获取当前时间和出生时间的年、月、日之差
+        （2）若月份相差为负说明不满这一年，年份减1，月份借了一年变为12+当前月份。故月份之差变为12+当前月份-出生月份。若月份相差为0并且天相差为负，说明也不满一年，计算同理。
+        （3）若天相差为负，说明不满这个月，月份减1，天数借了一个月，故天数之差为上个月的天数+当前天-出生天
+
+    </p>
+    <hr>
+    <div v-birthday="timeNow"></div>
+    <div v-birthday="timeBefore"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <script src="./birthday.js"></script>
+  <script src="./index.js"></script>
+  
+</body>
+</html>

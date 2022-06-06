@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-4.vue计算属性</title>
+    <script src="Vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h3>1.概述</h3>
+        <div> 
+                前面已经知道插值表达式应该只传入一些变量属性,而当某个属性的值依赖于其他属性的值时,或者是一个复杂的表达式时都应该使用计算属性。<br>
+            这样其依赖属性的值发生改变时,计算属性值才会自动更新,与之对应的DOM部分也会自动同步更新。<br>
+            计算属性computed是和data同级的数据相关的配置选项,每个计算属性都有一个getter和setter,用来获取和设置计算属性。
+            计算属性将会被混入到 Vue 实例中。所以所有 getter 和 setter 的 this 上下文自动地绑定为 Vue 实例。
+            所以也不要使用箭头函数。
+        </div>
+        <h3>2.使用</h3>
+        <div>
+            它是一个对象,有两种定义方法:但都以函数形式写在computed配置选项中,但是默认用法只使用getter。
+            computed:{
+                // 默认只使用计算属性的 getter仅读取
+                reverse:function(){ 
+                    return this.msg.split(',').reverse().join(',')
+                },
+                reverse(){//es6缩写,reverse依赖于msg属性。     
+                     return this.msg.split(',').reverse().join(',') //this指向当前的vm实例。
+                },
+                //getter 和setter 读取和设置都使用
+                reverse:{//本质计算属性是一个对象
+                    // get:function(){
+                    //     return aaa 
+                    // },
+                    //getter
+                    get(){//es6写法,在使用计算属性时其实调用的就是get方法。
+        
+                    },
+                    //setter
+                    set:function(newValue){//这个方法很少用,当设置值时触发,会将设置的值传入。
+        
+                    }
+        
+                }
+            }
+            使用:在插值表达式中写上计算属性名即可{{ reverse }}
+        </div>
+        <h3>3.特点</h3>
+        <div>
+            (1)依赖其它属性值,具备缓存性,依赖的属性值不发生改变,取值时计算属性方法不会重复执行。只有它依赖的属性值发生改变,下一次获取 computed 的值时才会重新计算,不然使用缓存的数据值。
+            (2)不支持异步,当computed内有异步操作时无效,无法监听数据的变化
+            (3)如果computed需要对数据修改,需要写getter和setter操作,获取使用get方法,修改使用set方法。
+            (4)必须return返回一个值
+        </div>
+
+
+
+        <!-- 实战 -->
+        <p>原始数据: {{msg}}</p>
+        <p>原始数据翻转直接用插值表达式: {{msg.split(',').reverse().join(',')}}</p>
+        <p>原始数据翻转使用计算属性: {{reverse}}</p>
+        <p>原始数据翻转使用方法: {{reverseMsg()}}</p>
+        <hr>
+        <div>
+            姓:<input type="text" v-model="firstName"><br>
+            名:<input type="text" v-model="lastName"><br>
+            姓名(计算属性):<input type="text" v-model="computedName"><br>
+            姓名(计算属性双向):<input type="text" v-model="computedTwoName"><br>
+        </div>
+        <hr>
+        商品总价:{{totalPrice}}
+    </div>
+    
+<!-- js -->
+<script>
+const vm = new Vue({
+    el:'#app',
+    data:{
+        msg:'欢迎,开始,学习vue' , 
+        firstName:'',
+        lastName:'',
+        package1: [ 
+            {
+                name : "iPhone 7 ",
+                price: 7199, 
+                count: 2 
+            },
+            {
+                name :"iPad ", 
+                price : 2888 , 
+                count: 1 
+            }
+
+        ],
+        package2: [ 
+            {
+                name : "apple ",
+                price: 7, 
+                count: 23 
+            },
+            {
+                name :"banana ", 
+                price : 5 , 
+                count: 13 
+            }
+
+        ]
+    },
+    methods: {
+        reverseMsg(){//每加载一次就调用执行一次,不会缓存浪费资源。
+            return this.msg.split(',').reverse().join(',')
+        }
+    },
+    computed:{
+        reverse(){//es6的写法,reverse依赖于msg属性。计算属性会缓存        
+             return this.msg.split(',').reverse().join(',') //this指向当前的vm实例。
+        },
+        reverseA:{//本质计算属性是一个对象
+            // get:function(){
+            //     return aaa 
+            // },
+            //getter
+            get(){//es6写法,在使用计算属性时其实调用的就是get方法。
+
+            },
+            //setter
+            set:function(newValue){//这个方法很少用
+
+            }
+
+        },
+        computedName(){
+            return this.firstName + ' ' + this.lastName
+        },
+        computedTwoName:{
+            get(){
+                return this.firstName + ' ' + this.lastName
+            },
+            set(val){
+                var names = val.split(' ')
+                this.firstName = names[0]
+                this.lastName = names[names.length - 1]
+            }
+        },
+        totalPrice(){
+            let total = 0
+            for(let i = 0;i < this.package1.length;i++){
+                total += this.package1[i].price*this.package1[i].count
+            }
+            for(let i = 0;i < this.package2.length;i++){
+                total += this.package2[i].price*this.package2[i].count
+            }
+            return total
+        }
+        
+    },
+    
+})        
+</script>
+</body>
+</html>

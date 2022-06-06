@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-5.异步组件</title>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script>  -->
+    <script src="../vue-basic-study/Vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h3>1. 异步组件</h3>
+        <div>
+            所谓异步组件就是Vue 允许我们使用一个工厂函数的方式定义组件,这个工厂函数是异步解析你的组件定义。
+            Vue 只有在这个组件需要被渲染的时候才会触发该工厂函数,且会把结果缓存起来供未来重渲染。
+            目的就是只在用到时才加载组件,这样可以加快页面访问速度。
+        </div>
+        <h3>2.加载方法</h3>
+        <div>
+            <h4>1.将异步组件和 webpack 的 code-splitting 功能一起配合使用</h4>
+            <div>
+                Vue.component('async-webpack-example', function (resolve) {
+                    // 这个特殊的 `require` 语法将会告诉 webpack
+                    // 自动将你的构建代码切割成多个包，这些包
+                    // 会通过 Ajax 请求加载
+                    require(['./my-async-component'], resolve)
+                  })
+            </div>
+            <h4>2.返回一个 Promise,把 webpack 2 和 ES2015 语法加在一起</h4>
+            <div>
+                这样可以实现组件的异步动态导入,这种方法用的很多就是异步加载,只有等到用时才运行把组件加载进来。
+                Vue.component('async-webpack-example',
+                    // 这个动态导入会返回一个 `Promise` 对象。
+                    () => import('./my-async-component')
+                )
+                //局部异步引入,返回一个promise。
+                components: {
+                    'my-component': () => import('./my-async-component')
+                }
+            </div>
+        </div>
+
+
+        <!-- 实战练习 -->
+        <hr>
+        <p>下面就是异步组件,它是经过1秒之后才渲染出来的。</p>
+        <async-example></async-example>
+
+    </div>
+
+<!-- js -->
+<script>
+Vue.component('async-example', function (resolve, reject) {
+  setTimeout(function () {
+    // 向 `resolve` 回调传递组件定义
+    resolve({
+      template: '<div>I am async!</div>'
+    })
+  }, 1000)
+})
+
+const vm = new Vue({
+    el:'#app',
+    data:{
+        msg:'欢迎开始学习vue' , 
+    },
+    components: {
+        'my-component': () => import('./tab-component/pane.js')
+    }
+})        
+</script>
+</body>
+</html>

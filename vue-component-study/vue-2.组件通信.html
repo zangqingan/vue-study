@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-2.组件通信</title>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script>  -->
+    <script src="../vue-basic-study/Vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h3>1.概述</h3>
+        <div>  
+                所谓的组件通信就是说组件之间要能够相互访问某些数据。
+                常见有三种:父子组件通信、隔代组件通信、兄弟组件通信,它们分别适用如下方法。
+                父子组件通信:props和$emit(),$parent和$children,ref和$refs,provide和inject,$attrs和$listeners
+                兄弟组件通信:eventBus,vuex
+                隔代组件通信:eventBus,vuex,provide和inject,$attrs和$listeners。
+            
+        </div>
+        <h3>2.props和$emit()</h3>
+        <div>
+            <h4>1.props实现步骤</h4>
+            <div>
+                props选项是和data选项一样的数据相关选项,它的作用就是在组件注册时自定义一些 attribute。
+                定义好之后它就变成了那个组件实例的一个 property,如果这个属性等于一些值,会把值传递进来。
+                一个组件默认是可以拥有任意数量的 prop,任何值也都可以传递给任何 prop。
+                它可以接收两种数据格式:一种是字符串数组,一种是对象,对象时可以进行一些校验。
+                例如:为了给博文组件传递一个标题attribute,在组件的 props 选项中声明。
+                Vue.component('blog-post', {
+                    props: ['title'],
+                    <!-- template: '{{ title }}' -->
+                })
+                //然后就可以把定义的props属性作为一个自定义 attribute 传递进来。这时是静态传递,如果使用v-bind绑定title就可以实现动态传递 prop。
+                blog-post title="My journey with Vue">/blog-post>
+                //动态传递props
+                blog-post v-for="post in posts" v-bind:key="post.id" v-bind:title="post.title">/blog-post>
+                new Vue({
+                    el: '#blog-post-demo',
+                    data: {
+                        posts: [
+                        { id: 1, title: 'My journey with Vue' },
+                        { id: 2, title: 'Blogging with Vue' },
+                        { id: 3, title: 'Why Vue is so fun' }
+                        ]
+                    }
+                })
+            </div>
+            <h4>2.prop命名要求</h4>
+            <div>
+                HTML 中的 attribute 名是大小写不敏感的,所以浏览器会把所有大写字符解释为小写字符。
+                统一还是使用 kebab-case (短横线分隔命名) 命名,如果使用camelCase (驼峰命名法) 定义的 prop 名,则在父组件使用传值时也要先转化为短横线分隔的形式。
+                Vue.component('blog-post', {
+                    // 在 JavaScript 中是 camelCase 的
+                    props: ['postTitle'],
+                    <!-- template: '{{ postTitle }}' -->
+                })
+                <!-- 在 HTML 中是 kebab-case 的 -->
+                blog-post post-title="hello!">/blog-post>
+            </div>
+            <h4>3.prop验证</h4>
+            <div>
+                可以为 props 中的值提供一个带有验证需求的对象,而不是一个字符串数组。验证失败报错。
+                props: {
+                    // 基础的类型检查 (`null` 和 `undefined` 会通过任何类型验证)
+                    propA: Number,
+                    // 多个可能的类型
+                    propB: [String, Number],
+                    // 必填的字符串
+                    propC: {
+                      type: String,
+                      required: true
+                    },
+                    // 带有默认值的数字
+                    propD: {
+                      type: Number,
+                      default: 100
+                    },
+                    // 带有默认值的对象
+                    propE: {
+                      type: Object,
+                      // 对象或数组默认值必须从一个工厂函数获取
+                      default: function () {
+                        return { message: 'hello' }
+                      }
+                    },
+                    // 自定义验证函数
+                    propF: {
+                      validator: function (value) {
+                        // 这个值必须匹配下列字符串中的一个
+                        return ['success', 'warning', 'danger'].indexOf(value) !== -1
+                      }
+                    }
+                  }
+            </div>
+            <h4>4.单向数据流</h4>
+            <div>
+                props选项里的值和组件data选项中的值在组件中都可以被使用,不过props的值是从父组件中传递下来的。
+                子组件不能直接修改props 接收的值,这是因为vue中的props是单向向下绑定的数据流。
+                父级 prop 的更新会向下流动到子组件中,但是反过来修改则不行。
+                这是为了防止从子组件意外变更父级组件的状态,从而导致你的应用的数据流向难以理解。
+                如果需要改变一般是先在子组件data中声明一个变量或者计算属性中等于或依赖它然后操作这个本地的变量/计算属性即可。
+            </div>
+            <h4>5.$emit()方法</h4>
+            <div>
+                实现的基础是:父级组件可以像处理原生(native DOM)DOM事件一样通过 v-on 监听子组件实例的任意事件。<br>
+                还是以
+                blog-post v-on:enlarge-text="onEnlargeText">/blog-post>
+               
+                子组件可以通过调用内建的 $emit("事件名",payload) 方法并传入事件名称来触发一个事件。
+                该方法接收两个参数:
+                    参数一:"事件名",触发的事件名称
+                    参数二:payload,传递的参数对象,这个参数会传递到父组件定义的方法的第一个参数
+                Vue.component('blog-post', {
+                    // 在 JavaScript 中是 camelCase 的
+                    props: ['postTitle'],
+                    <!-- template: `{{ postTitle }} -->
+                        button v-on:click="changText">
+                            Enlarge text
+                        /button>`,
+                    methods:{
+                        changText(){
+                            this.$emit('enlarge-text',payload)
+                        }
+                    }
+                })
+                //父组件也可以通过
+                methods: {
+                    onEnlargeText: function (payload) {
+                      this.postFontSize += payload
+                    }
+                  }
+            </div>
+        </div>
+        <h3>3.$parent/$children与ref/$refs</h3>
+        <div>
+            <h4>1.$parent/$children</h4>
+            <div>
+                这两个是vue的实例属性,$parent属性可以用来从一个子组件访问父组件的实例,而$children可以用来访问当前实例的所有直接子组件。
+                即:在子组件中可以通过 this.$parent 访问当前组件的父组件,父组件也可以通过 this.$children 访问它所有的子组件。
+                而且可以递归向上或向下无限访问,知道根实例或最里层组件。
+                注意:实际开发中尽量避免使用这种方法,因为这样会使得父子组件紧耦合不利于理解父组件的状态。
+                同时$children 并不保证顺序,也不是响应式的所以实际中都不推荐使用过。主要目的是作为访问组件的应急方法。
+            </div>
+            <h4>2.ref/$refs</h4>
+            <div>
+                ref vue提供的一个特殊attribute,类似id属性,用来给元素或子组件注册引用ID信息。引用信息将会注册在父组件的 $refs 对象上。
+                如果在普通的 DOM 元素上使用,引用指向的就是 DOM 元素；如果用在子组件上,引用就指向组件。
+                注意:$refs是在组件渲染完成后才填充的,而且是非响应式的。所以也要避免在模板或者计算属性中使用 $refs。主要目的也是作为访问组件的应急方法。
+                <!-- `vm.$refs.p` will be the DOM node -->
+                p ref="p">hello/p>
+                <!-- `vm.$refs.child` will be the child component instance -->
+                child-component ref="child">/child-component>
+            </div>
+        </div>
+        <h3>4.provide/inject 依赖注入选项</h3>
+        <div>
+            这是配置对象中的一对配置选项需要一起使用,作用是实现一个祖先组件向其所有子孙后代注入一个依赖,不论组件层次有多深,并在其上下游关系成立的时间里始终生效。
+            provide 选项允许我们指定我们想要提供给后代组件的数据/方法,它是一个对象或返回一个对象的函数该对象包含可注入其子孙的 property。
+            然后在任何后代组件里,我们都可以使用 inject 选项来接收指定的我们想要添加在这个实例上的 property。
+            注意:provide 和 inject 绑定也不是可响应的所以也不推荐使用。
+
+        </div>
+        <h3>5.中央事件总线eventBus</h3>
+        <div>
+            这种方法通过一个空的 Vue 实例作为中央事件总线（事件中心）,用它的$emit方法来触发事件,用$on方法来监听事件。
+            从而实现任何组件间的通信,包括父子、隔代、兄弟组件。但是这种方法也有不方便之处, 当项目较大,就容易造成难以维护的灾难。
+            然后在页面vue实例初始化时的mounted生命周期钩子里监听来自bus实例的事件,有点像轻量级的vuex。
+            也可以给它挂载到vue的原型上。
+            1. 初始化
+            首先需要创建一个事件总线并将其导出, 以便其他模块可以使用或者监听它。也有注册到Vue实例属性$eventBus的这样不用每次都引入。
+            2. 发送事件
+            需要通信的组件一方使用$emit方法发射事件出入,这里我们以兄弟组件additionNum 和 showNum为例:
+            3. 接收事件
+            另一方使用$on方法监听发射出来的事件名。
+            4. 移除事件监听者$off()
+            一般自定义发射出来的事件最好在vue实例销毁前beforeDelete钩子里也移除掉
+            主要用到vue的三个与事件相关的实例方法
+            $emit(),触发当前实例上的事件,附加参数都会传给监听器回调。
+            $on(),监听当前实例上的自定义事件。事件可以由 vm.$emit 触发。回调函数会接收所有传入事件触发函数的额外参数。
+            $off(),移除自定义的事件监听器。
+            vm.$on('test', function (msg) {
+                console.log(msg)msg === 'hi'
+            })
+            vm.$emit('test', 'hi')
+            // => "hi"
+
+
+        </div>
+        <h3>6.$attrs/$listeners</h3>
+        <div>
+            使用 v-bind=”$attrs”, 将父组件中不被认为 props 特性绑定的属性传入子组件中,通常配合 interitAttrs 选项为false一起使用。也就是接收除了props声明外的所有绑定属性(class、style除外)。
+            inheritAttrs:true 继承除 props 之外的所有属性,inheritAttrs:false 只继承 class style 属性。
+            $attrs-继承所有的父组件属性(除了 prop 传递的属性、class 和 style ),一般用在子组件的子元素上。
+            $listeners属性,它是一个对象,里面包含了作用在这个组件上的所有监听器,你就可以配合 v-on="$listeners" 将所有的事件监听器指向这个组件的某个特定的子元素。(相当于子组件继承父组件的事件)
+            优点是让组件之间跨组件的通信在不依赖 vuex 和 事件总线的情况下变得简洁,业务清晰。
+        </div>
+        <h3>7.Vue状态管理模式vuex</h3>
+        <div>
+            vue官方提供的状态管理模式vuex,在vuex中具体学习如何使用。
+        </div>
+
+
+        <!-- 实战练习 -->
+        <hr>
+        <!-- 1.props和$emit() -->
+        <div>
+            <p>1. 父组件向子组件传递数据</p>
+            <!-- 静态传递 -->
+            <span>不使用v-bind动态传递当成普通字符串</span>
+            <m-com jmove="jmove" jmsg="jmsg"></m-com>
+            <!-- 在使用组件时通过v-bind 来动态传递 prop。 -->
+            <span>使用v-bind动态传递当成变量在当前父组件的data中寻找</span>
+            <m-com v-bind:cmove="move" :cmsg="msg"></m-com>
+            <hr>
+            <p>2. 子组件向父组件传递数据</p>
+            <!-- 父组件在使用子组件时使用v-on监听自定义事件 -->
+            <com2 v-on:btnclick="fatherClick"></com2>
+        </div>
+        <hr>
+        <!-- 2. ref/$refs 与 $parent/$children-->
+        <div>
+            <p>3.子组件索引传递</p>
+            <button @click="handleRef">点击通过子组件索引传递</button>
+            <p>我是通过ref属性传递的值--{{fatherRefmsg}}</p>
+            <ref-com ref="refCom"></ref-com>
+            <hr>
+            <p>4.父链传值</p>
+            {{linkmsg}}
+            <link-com></link-com>
+            
+        </div>
+        <hr>
+        <!-- 3.provide与inject -->
+        <div>
+            <p>5.依赖注入provide与inject</p>
+            <provide-com></provide-com>
+        </div>
+        <hr>
+        <!-- 4.eventBus -->
+        <div>
+            <p>6.中央事件总线传值</p>
+            <span>后面的是通过eventBus传递的数据--{{msg1}}</span><br>
+            <bus-com></bus-com>
+        </div>
+        <hr>
+        <!-- 5.$attrs/$listeners  -->
+        <div>
+            <p>7.$attrs/$listeners</p>
+            <attr-listener-com></attr-listener-com>
+        </div>
+        <hr>
+        <!-- 6.vuex -->
+        <div>
+            <p>8.vue官方提供的状态管理模式vuex</p>
+            <div>
+                在vuex中具体学习每一个 Vuex 应用的核心就是 store(仓库)。
+                “store” 基本上就是一个容器，它包含着你的应用中大部分的状态(state)。
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+<!-- js -->
+<script>
+// $attrs/$listeners
+Vue.component("attr-listener-com",{
+    template:`
+    <div>
+        <attr-com :name="name" :age="age" :gender="gender" @childsay="handleClick" @childhi="fatherhi"></attr-com>
+    </div> 
+    `,
+    data(){
+        return{
+            name:'zhangsan',
+            age:27,
+            gender:'male',
+        }
+    },
+    methods:{
+        handleClick(params){
+            console.log('子组件传递过来的数据',params)
+        },
+        fatherhi(value){
+            console.log('子组件传递过来的数据',value)
+        }
+    },
+    // 子组件
+    components:{
+        'attr-com':{
+            // 关闭没有在props上声明的属性
+            inheritAttrs:false,
+            // props只声明1个
+            props:['name'],
+            template:`
+            <div>
+                <div>我是子组件</div>
+                <p>props接收父组件传递过来的姓名--{{name}}--</p>
+                <p>当前的$attrs--{{$attrs}}--</p>
+                <p>下面是attr-listener-com组件的孙组件</p>
+                <div>通过v-bind绑定$attrs,孙组件可以直接获得attr-listener-com组件传递下来的props(除去attr-com在props声明接收的)</div>
+                <attr-com-child v-bind="$attrs" v-on="$listeners"></attr-com-child>
+            </div>
+            `,
+            data(){
+                return{
+                    childrensay:'子组件说话',
+                    childrenhi:'子组件打招呼',
+                }
+            },
+            created() {
+                // 这里可以看看实例属性$attrs到底是什么
+                console.log('$attrs is',this.$attrs)
+            },
+            mounted(){
+                // 发射两个事件
+                this.$emit('childsay',this.childrensay),
+                this.$emit('childhi',this.childrenhi)
+            },
+            components:{
+                'attr-com-child':{
+                    inheritAttrs:false,
+                    props:['age'],
+                    template:`
+                    <div>
+                        <div>我是孙组件</div>
+                        <p>props接收父组件传递过来的年龄--{{age}}--</p>
+                        <p>当前的$attrs{{$attrs}}</p>
+                    </div>
+                    `,
+                    created() {
+                        // 这里可以看看实例属性$attrs到底是什么
+                        console.log('$attrs is',this.$attrs)
+                        console.log('$listeners is',this.$listeners)
+                    },
+                }
+            }
+        }
+    }
+})
+// 中央事件总线传值
+const eventBus = new Vue()
+Vue.component("bus-com",{
+    template:`<button @click="handleClick">中央事件总线传递事件</button>`,
+    methods:{
+        handleClick(){
+            // 使用一个新的vue实例作为中转者也发射事件
+            eventBus.$emit('show-msg','这是中央事件总线发射事件返回的数据')
+        }
+    }
+})
+// provide和inject
+Vue.component("provide-com",{
+    template:`
+    <div>
+        <inject-com></inject-com>
+    </div> 
+    `,
+    data(){
+        return{
+            fatherProvideMsg:'我是父类的数据,通过依赖注入传递'
+        }
+    },
+    methods:{
+        handleClick(){
+            console.log('我是父组件中的方法通过依赖注入传递')
+        }
+    },
+    // 依赖注入
+    provide(){
+        return{
+            msg:this.fatherProvideMsg,
+            handleClick:this.handleClick
+        }
+    },
+    // 子组件
+    components:{
+        'inject-com':{
+            // 依赖注入
+            inject:['msg','handleClick'],
+            template:`
+            <div>
+                <div>我是通过依赖注入传递的数据---{{msg}}</div>
+                <button @click="handleClick">依赖注入</button>
+                <hr>
+                <p>下面是provide-com组件的孙组件</p>
+                <inject-com-child></inject-com-child>
+            </div>
+            `,
+            components:{
+                'inject-com-child':{
+                     // 孙子依赖注入
+                    inject:['msg','handleClick'],
+                    template:`
+                    <div>
+                        <div>我是孙组件---{{msg}}</div>
+                        <button @click="handleClick">依赖注入</button>
+                    </div>
+                    `,
+                }
+            }
+        }
+    }
+})
+// $parent和$children
+Vue.component("link-com",{
+    template:`<button @click="handleLink">父链直接修改值</button>`,
+    methods:{
+        handleLink(){
+            // 直接使用父链直接修改值
+            this.$parent.linkmsg = '我是通过父链修改的数据'
+        }
+    }
+})
+// ref和$refs
+Vue.component("ref-com",{
+    template:`<div>子组件索引</div>`,
+    data(){
+        return{
+            refmsg:'我是子组件中的数据,通过子组件索引ref传递'
+        }
+    }
+})
+
+
+
+// vue实例
+const vm = new Vue({
+    el:'#app',
+    data:{
+       
+        msg:'欢迎开始学习vue' ,
+        msg1:'' ,
+        linkmsg:'',
+        fatherRefmsg:'',
+        move:['绝代双骄','龙争虎斗','敖世无双'],
+
+        jmsg:'欢迎开始学习jmsg' ,
+        jmove:['绝代双骄','龙争虎斗','敖世无双'] ,
+
+    
+        
+
+    },
+    mounted() {
+        // 在挂载完成钩子里监听$emit()触发的事件
+        eventBus.$on('show-msg',params => {
+            this.msg1 = params
+        })
+    },
+    beforeDestroy() {
+        // 销毁前删除事件
+        eventBus.$off('show-msg')
+    },
+    methods: {
+        fatherClick(item){
+            console.log('我是父组件上监听子组件打印的信息',item.name)
+        },
+        handleRef(){
+            // 直接通过this.$refs.refCom访问到子组件
+            this.fatherRefmsg = this.$refs.refCom.refmsg
+        }
+       
+    },
+    components:{
+        'm-com':{
+            //父传子,在子组件中使用props声明需要接收的数据,数组方式 
+            // props:['cmove','cmsg'],
+            // 对象方式
+            props:{
+                jmove:{type:String},
+                jmsg:{type:String},
+
+                cmove:{type:Array},
+                cmsg:{type:String},
+               
+            },
+            template:`
+                <div>
+                    <ul>
+                        <li v-for="item in jmove">{{item}}</li>
+                    </ul>
+                    <p>{{jmsg}}</p>
+                    <ul>
+                        <li v-for="citem in cmove">{{citem}}</li>
+                    </ul>
+                    <p>{{cmsg}}</p>
+                </div>
+            `,
+        },
+        'com2':{
+            // 子传父
+            props:{
+
+            },
+            data(){
+                return{
+                    categories:[
+                        {id:'aaa',name:'热门推荐'},
+                        {id:'bbb',name:'手机数码'},
+                        {id:'ccc',name:'电脑硬件'},
+                        {id:'ddd',name:'水产生鲜'},
+                    ]
+                }
+            },
+            methods: {
+                btnClick(item){
+                    // 在子组件中我就知道自己点击了谁,但是我们需要的是让父组件知道
+                    // console.log(item)
+                    // 通过$emit()向父组件发射一个 自定义事件
+                    this.$emit('btnclick',item)
+                }
+            },
+            template:`
+                <div>
+                    <button v-for="item in categories" v-on:click="btnClick(item)">{{item.name}}</button>
+                </div>
+            `,
+        },
+    }
+    
+})        
+</script>
+</body>
+</html>

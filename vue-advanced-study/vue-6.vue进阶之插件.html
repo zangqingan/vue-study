@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>6.vue进阶之插件</title>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script>  -->
+    <script src="../vue-basic-study/Vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h3>1. plugins(插件)</h3>
+        <div>
+            vuejs提供了插件机制,用来向全局添加一些功能。比如官方就提供了vue-router,vuex等核心插件,此外还有社区发布到npm上的各种插件。
+            Vue提供了全局方法 Vue.use() 来安装 Vue.js 插件。如果插件是一个对象,必须提供 install 方法。
+            如果插件是一个函数,它会被作为 install 方法。install 方法调用时,会将 Vue 作为参数传入。
+            该方法需要在调用 new Vue() 之前被调用,而且无论调用多少次插件也只会被安装一次。
+
+
+            也就是说注册插件需要公开一个install方法
+            它接收两个形参。
+                第一个是Vue构造器,
+                第二个是一个可选的配置对象。
+            MyPlugin.install = function(Vue,options){
+                //全局注册组件
+                Vue.component()
+                //添加实例方法
+                Vue.prototype.$m = function(){}
+                //全局混入
+                Vue.mixin({})
+            }
+            然后通过 Vue.use(MyPlugin)来使用插件。
+        </div>
+
+
+        <!-- 实战练习 -->
+        <hr>
+
+
+    </div>
+
+<!-- js -->
+<script>
+
+const vm = new Vue({
+    el:'#app',
+    data:{
+        msg:'欢迎开始学习vue' , 
+    }
+})        
+</script>
+</body>
+</html>

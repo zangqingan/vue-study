@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数字输入框组件</title>
+</head>
+<body>
+    <div id="app">
+      <p>数字输入框只能输入数字，两个按键加和减实现增加或减少1，</p>
+      <hr>
+      <input-number v-model="value"  :min="0" :step="10"></input-number>
+    </div>
+
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script> -->
+    <script src="../../vue-basic-study/Vue.js"></script>
+    <script src="./input-number.js"></script>
+    <script src="./index.js"></script>
+</body>
+</html>

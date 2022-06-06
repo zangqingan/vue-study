@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head
+    <meta charset="UTF-8">
+    <title>vue-2.vue的基本使用和MVVM之间的对应关系</title>
+    <!-- 1,导入vue的包 -->
+    <!-- 开发环境版本,包含了有帮助的命令行警告 -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script> -->
+    <script src="Vue.js"></script>
+</head>
+<body>
+    <!-- 3.将来vue的实例会控制这个元素中的所有内容 -->
+    <!-- 这个是mvvm中的v视图层,即vue实例控制的元素区域就是v -->
+    <div id="app">
+        <h3>1. vue基本使用的三个步骤</h3>
+        <div>
+            <h4>1.引入vue核心库</h4>
+            <div>
+                    直接下载到本地或者通过CDN,在head元素中通过script标签引入,这是vue基本的开发模式,在实际开发中一般是用vue脚手架快速生成vue项目组织结构的。
+                注意:引入核心库之后,Vue 会被注册为一个全局变量,也就是会自动在浏览器中注入一个 Vue() 构造函数。
+                这个跟引入jQuery库是一样的。
+            </div>
+            <h4>2.创建Vue实例</h4>
+            <div>
+                    在body底部通过script标签,使用 Vue()构造函数创建Vue实例,这个new出来的实例就是MVVM里的 vm 调度者对象。
+                Vue()构造函数接收一个配置对象,里面的每一项叫做配置选项,配置选项之间用逗号隔开。
+                当一个 Vue 实例被创建时,它会将 data 配置选项中的所有的 property 加入到 Vue 的响应式系统中。
+                注意:只有当实例被创建时就已经存在于 data 中的 property 才是响应式的,后面添加的不会响应。
+                所以如果你知道你会在晚些时候需要一个 property,但是一开始它为空或不存在,那么你仅需要设置一些初始值。
+                空字符,0,[],{},null这样的初始值即可。
+            </div>
+            <h4>3挂载Vue实例</h4>
+            <div>
+                    指定Vue实例的挂载区域,这里就是配置对象的el选项对应的属性值,它是页面中的一个区域。
+                它就是MVVM中的 V 视图层,将来用户实际看到的东西。
+                至此一个简单的vue应用就成了,如果希望和webpack配合使用,希望使用状态管路由等等都㐓继续添加这也就是渐进式的含义。
+            </div>
+        </div>
+        <h3>2. vue配置对象</h3>
+        <div>
+            我们知道Vue构造函数接收一个配置对象,这个配置对象里的每一项就是配置选项,它们之间使用逗号分隔。
+            现在可以不必都知道,常见分类如下:
+            //配置对象
+            {   
+                <!-- DOM相关选项 -->
+                el:'#app',//这个选项接收一个已存在的 DOM 元素作为 Vue 实例的挂载目标。可以是 CSS 选择器,也可以是一个 HTMLElement 实例。
+                //只在用 new 创建实例时生效,在实例挂载之后,可以使用 vm.$el 访问这个元素。
+                //如果在实例化时存在这个选项,实例将立即进入编译过程,否则,需要显式调用 vm.$mount() 手动绑定挂载点开启编译。
+
+                template:`string`,//一个字符串模板作为 Vue 实例的标识使用。模板将会替换挂载的元素。挂载元素的内容都将被忽略,除非模板的内容有分发插槽。
+                //没有这个选项是就使用el绑定元素的outerHTML作为模板。
+
+                render:function (createElement) {
+                    return createElement('h1',{},'hello' | [] )
+                    return createElement('标签名',prop:{对象属性对象},'文本内容'| children:Array )
+                },//渲染函数,接收一个createElement方法用来创建一个虚拟dom即vnode,这个选项存在时vue不会从 template 选项或通过 el 选项指定的挂载元素中提取出的 HTML 模板编译渲染函数。
+                
+                <!-- 数据相关选项 -->
+                data:{} | function,// Vue 实例的数据对象。Vue 会递归地把 data 的 property 转换为 getter/setter,也就是变成响应数据。
+                //组件的定义时必须是function,实例创建之后,可以通过 vm.$data 访问原始数据对象。Vue 实例也代理了 data 对象上所有的 property,因此访问 vm.a 等价于访问 vm.$data.a。
+
+                props: ['size', 'myMessage']|{
+                    type:String,可以是下列原生构造函数中的一种:String、Number、Boolean、Array、Object、Date、Function、Symbol不是给定的类型抛出警告。
+                    default:any,默认值如果该 prop 没有被传入,则换做用这个值。对象或数组的默认值必须从一个工厂函数返回。
+                    required:Boolean,定义该 prop 是否是必填项。
+                    //例子
+                    // 检测类型
+                    height: Number,
+                    // 检测类型 + 其他验证
+                    age: {
+                        type: Number,
+                        default: 0,
+                        required: true,
+                        validator: function (value) {
+                            return value >= 0
+                        }
+                    }
+                },//可以是数组或对象,用于接收来自父组件的数据。使用对象时允许配置高级选项,如类型检测、自定义验证和设置默认值。
+
+                //data: { a: 1 },
+                computed:{
+                    // 仅读取
+                    aDouble: function () {
+                      return this.a * 2
+                    },
+                    // 读取和设置
+                    aPlus: {
+                      get: function () {
+                        return this.a + 1
+                      },
+                      set: function (v) {
+                        this.a = v - 1
+                      }
+                    }
+                },
+                vm.aPlus   // => 2
+                vm.aPlus = 3
+                vm.a       // => 2
+                vm.aDouble // => 4
+                //计算属性,它依赖于其它的数据(data或者props等)结果会被缓存。
+                //它会被混入到 Vue 实例中。所有 getter 和 setter 的 this 上下文自动地绑定为 Vue 实例。
+
+                //data: { a: 1 },
+                watch:{
+                    a: function (val, oldVal) {
+                        console.log('new: %s, old: %s', val, oldVal)
+                    },
+                },//一个对象,键是需要观察的表达式,值是对应回调函数。值也可以是方法名,或者包含选项的对象。不要使用箭头函数定义。
+
+                //data: { a: 1 },
+                methods:{
+                    plus: function () {
+                        this.a++
+                    }
+                },
+                vm.plus()
+                vm.a // 2
+                //methods 也被混入到 Vue 实例中,所以可以直接通过 VM 实例访问这些方法,或者在指令表达式中使用。
+                //也不要使用箭头函数来定义 method 函数 ,不然this就不指向vue实例了。
+
+                <!-- 生命周期钩子相关选项 -->
+                所有生命周期钩子的 this 上下文将自动绑定至实例中,因此你可以访问 data、computed 和 methods。
+                也不要使用箭头函数来定义。
+
+                <!--组合资源选项  -->
+                components:{
+                    该选项用来局部注册组件,property 名就是自定义元素的名字也就是之后在页面中使用的标签名，其 property 值就是这个组件的选项对象。
+                    注意:局部注册的组件在其子组件中不可用
+                    'component-a': ComponentA,
+                    '组件名':组件的配置对象
+                },
+                filters:{
+                    局部注册的过滤器,只允许在当前定义组件中使用。重名时会覆盖全局过滤器。
+                    capitalize:function(){
+
+                    }
+                },
+                mixins:{
+                    混入 (mixin) 提供了一种非常灵活的方式，来分发 Vue 组件中的可复用功能。
+                    一个混入对象可以包含任意组件选项。当组件使用混入对象时，所有混入对象的选项将被“混合”进入该组件本身的选项。
+                },
+                directives:{
+
+                }
+
+                <!-- 其它选项 -->
+                name:'comA',只有作为组件选项时起作用,给一个组件定义一个名字,便于调试。
+
+            }
+        </div>
+        <h3>3. vue的生命周期</h3>
+        <div>
+            <h4>1.概述</h4>
+            <div>
+                所谓vue的生命周期是指vue实例从创建到销毁的整个过程,
+                也就是从开始创建、初始化数据、编译模版、挂载 Dom -> 渲染、更新 -> 渲染、卸载等一系列过程,我们称之为 Vue 的生命周期。
+                Vue生命周期的作用就是在它的生命周期中提供了有多个事件钩子,让我们开发人员在控制整个Vue实例的过程时更容易形成好的逻辑,比如什么时候加载数据,什么时候更新数据等等。
+                Vue生命周期主要是四个过程:创建、挂载、更新、销毁,又分为八个过程状态:创建前、创建完成、挂载前、挂载完成、更新前、更新完成、销毁前、销毁完成。
+                作用就是给开发人员在vue实例的不同阶段添加自己代码执行不同的业务代码。<br>
+                <img src="./image/lifecycle.png" alt="" style="width: 1000px;height: 1600px;">
+            </div>
+            <h4>2.生命周期钩子</h4>
+            <div>
+                所有生命周期钩子本质就是一个函数
+                比较常用的有:
+                created:实例创建完成后调用,尚未挂载,$el不可用,需要初始化处理一些数据时使用。
+                mounted:el挂载到实例上后调用,一般第一个业务逻辑在这里开始。
+                beforeDestroy:实例销毁之前调用,主要用来解绑一些使用addEventListener监听的事件等。
+                注意:这些钩子像el,data选项一样传入Vue实例内,而且钩子的this指向调用它们的vue实例。
+
+                //Vue配置对象
+                {
+                    beforeCreate:function(){
+                        在实例初始化之后,进行数据侦听和事件/侦听器的配置之前同步调用。
+                    },
+                    created(){//es6缩写
+                        在这一步中,实例已完成对配置选项的处理,意味着以下内容已被配置完毕可以在这个钩子中使用：数据侦听、计算属性、方法、事件/侦听器的回调函数。
+
+                    },
+                    beforeMount(){
+
+                    },
+                    mounted(){
+                        实例被挂载后调用,这时 el 被新创建的 vm.$el 替换了。完成挂载生成了真实dom,但不是所有。
+                        如果你希望等到整个视图都渲染完毕再执行某些操作,可以在 mounted 内部使用 vm.$nextTick。
+                        this.$nextTick(function () {
+                            // 仅在整个视图都被渲染之后才会运行的代码
+                        })
+                    },
+                    beforeUpdate(){
+
+                    },
+                    updated(){
+                        它不会保证所有的子组件也都被重新渲染完毕。如果你希望等到整个视图都渲染完毕,可以在 updated 里使用 vm.$nextTick。
+                        this.$nextTick(function () {
+                            // 仅在整个视图都被渲染之后才会运行的代码
+                        })
+                    },
+                    beforeDestroy(){
+                        实例销毁之前调用。在这一步,实例仍然完全可用。一般用来清除定时器,自定义事件等。
+                    },
+                    destroyed(){
+                        实例销毁后调用。该钩子被调用后,对应 Vue 实例的所有指令都被解绑,所有的事件监听器被移除,所有的子实例也都被销毁。
+                    }
+
+                }
+            </div>
+        </div>
+        <hr>
+        <p>
+            {{msg}}--{{firstname}}--{{lastname}}--{{counter}}
+        </p>
+    </div>
+
+<!-- js -->
+<!-- 下次通过引入外部文件的方法 -->
+<script>
+// 2,创建一个vue实例对象vm,注意在我们导入vue包之后,在浏览器内存中就多了一个Vue()构造函数
+//注意:new出来的这个vm对象就是mvvm中的vm调度者
+const vm = new Vue({
+    el:'#app',//表示当前我们new的这个vue实例要控制页面的那个区域,挂载点。可以是HTML元素,或者css选择器。
+    //这里的data就是mvvm中的m,用来保存每一个页面的数据。
+    data:{//存放的是el中要用到的属性。
+        msg:'欢迎开始学习vue' ,  //通过vue提供的指令,很方便就能把数据渲染到页面上,程序猿不再操作dom。
+        firstname:'wang',
+        lastname:'geng',
+        counter:100
+
+    }
+    
+})        
+</script>
+</body>
+</html>

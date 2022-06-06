@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-3.组件插槽</title>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script>  -->
+    <script src="../vue-basic-study/Vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h3>1.插槽概述</h3>
+        <div>
+            目前使用组件都是 alert-box>/alert-box>当成HTML双标签调用,标签内是没有任何内容的。
+            但是有时想像 HTML 元素一样向一个组件传递内容如下形式:
+            alert-box>
+                Something bad happened.
+            /alert-box>
+            但是在vue中组件标签之间的内容会被忽略掉,为了让封装的组件更加具有扩展性在父组件使用子组件时像html标签一样可以在标签内传入内容。
+            vue提供了插槽也就是slot内置组件用来实现这个功能,slot元素作为组件模板template之中的内容分发插槽。slot元素自身将会被替换。这个过程就叫内容分发。<br>
+            使用也很简单只需要在子组件中使用slot标签,就可以为子组件开启一个slot也就是开启一个插槽。
+            此时在父组件里调用子组件,插入在子组件双标签内的所有内容将会替换到子组件模板里slot标签所在的位置。
+
+        </div>
+        <h3>2.编译作用域与后备内容</h3>
+        <div>
+            当在一个插槽中使用数据时,如:a-com>{user.name}/a-com>。此时这个数据user.name是和当前组件模板的作用域一样的。而不能访问a-com组件内部的作用域。
+            也就是它们是编译作用域:父级作用域里的所有内容都是在父级作用域中编译的,子级作用域里的所有内容都是在子级作用域中编译的。
+
+            后备内容(默认内容):也就是当没有内容传入时使用的插槽内容,它是在slot标签中书写的内容,在没有传入插槽内容时显示。
+            slot> 默认内容 /slot>。
+                
+        </div>
+        <h3>3.具名插槽</h3>
+        <div>
+            内置组件slot元素,都有一个name属性用于命名插槽。
+            2.6.0版本后,在使用时通过 v-slot 指令并以 v-slot指令的参数的形式提供其名称指定使用那个插槽<br>
+            如果没指定则使用没有name属性的slot(即name属性为default的插槽)。
+            语法:v-slot指令只能在template标签中使用,template中的内容会被替换到对应名字的插槽内。
+                //定义一个命名插槽
+                slot name="header">/slot>
+                //使用
+                template v-slot:header>
+                    h1>Here might be a page title/h1>
+                /template>
+            语法糖:跟 v-on 和 v-bind 一样,v-slot 也有缩写,即把参数之前的所有内容 (v-slot:) 替换为字符 #。
+                //定义一个命名插槽
+                slot name="header">/slot>
+                //使用
+                template #header>
+                    h1>Here might be a page title/h1>
+                /template>
+            主要的是:插槽的名字也是支持动态的,也就是使用方括号表示法传入一个变量作为名字。
+
+        </div>
+        <h3>4.作用域插槽</h3>
+        <div>      
+            有时让插槽内容能够访问子组件中才有的数据是很有用的,也就是子组件内的数据可以被父组件拿到(解决了数据只能从父组件传递给子组件)。
+            插槽prop:在slot标签上通过v-bind动态绑定的属性(特性)就是插槽prop,绑定的属性就是要传给父组件的内容。
+            然后就可以在父级作用域中:使用带值的 v-slot指令来定义我们提供的插槽 prop 的名字。
+                v-slot:插槽名="slotProps",指定使用哪一个插槽,这里的 slotProps就是包含了所有插槽prop的一个对象。
+            就是接收prop的插槽。
+        </div>
+
+        <!-- 实战练习 -->
+        <hr>
+        <m-com>
+            <!-- 如果m-com中没有预留插槽下面的p标签被忽略 -->
+            <p>1.我是通过插槽slot插入的内容</p>
+        </m-com>
+        <hr>
+        <m-com>
+            <template v-slot:left>
+                <button>2.我是通过具名插槽v-slot:left插入的内容</button>
+            </template>
+        </m-com>
+        <hr>
+        <m-com>
+            <template #center>
+                <i>3.我是通过具名插槽的简写#center插入的内容</p>
+            </template>  
+        </m-com>
+        <hr>
+        <m-com>
+            <template v-slot:domain="slotProps">
+                <p>4.作用域插槽</p>
+                <p>slotProps是一个对象:{{slotProps}}</p>
+                <p>下面的内容是通过作用域插槽从子组件m-com中取的数据展示的{{slotProps.address[1].name}}</p>
+                <ul v-for="(item,index) in slotProps" :key="item">
+                    <li v-for="an in item">{{an.home}}--{{an.name}}--{{an.age}}</li>
+                </ul>
+            </template>  
+        </m-com>
+
+    </div>
+
+<!-- js -->
+<script>
+const vm = new Vue({
+    el:'#app',
+    data:{
+        msg:'欢迎开始学习vue' , 
+    },
+    components:{
+        'm-com':{
+            template:`
+                <div>
+                    <h2>我是组件</h2>
+                    <p>组件内容</p>
+                    <slot></slot>
+                    <slot name="left"></slot>
+                    <slot name="center"></slot>
+                    <slot name="domain" v-bind:address="addr"></slot>
+                </div>
+            `,
+            data(){
+                return{
+                    addr:[
+                        {home:'广西',name:'王耿',age:24},
+                        {home:'广东',name:'蔵青安',age:23},
+                        {home:'湖南',name:'巧巧',age:22},
+                    ]
+                }
+            }
+        }
+    },
+})        
+</script>
+</body>
+</html>

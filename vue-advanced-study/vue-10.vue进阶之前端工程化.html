@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>10.vue进阶之前端工程化</title>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script>  -->
+    <script src="../vue-basic-study/Vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h3>1.前端工程化概述</h3>
+        <div>
+            高效的开发是离不开基础工程的搭建,随着前端领域的迅速发展,前端项目也变得越来越大。
+            前端工程化应运而生出现了很多前端工程化的构建工具,比如webpack、grunt、gult、vite等。
+            他们的作用就是:
+                自动构建前端项目的工程化目录。
+                将JavaScript、css代码合并、压缩、打包。
+                实现css预处理器:sass、less、stylus的编译。
+                生成精灵图(css sprite)。
+                ES6转成ES5,兼容浏览器。
+                模块化
+                等等还有很多特性。
+            使用前端构建工具可以大大优化你的前端工作流程,这里主要学习webpack。
+            它的作用就是将我们写的各种格式文件(如vue、ts、less、sass、jpg等)通过特定的加载器(loader)编译并打包,最终统一生成为 .js、.css、.png等静态资源文件。
+        </div>
+        <h3>2.webpack基本配置</h3>
+        <div>
+            webpack 是一个用于现代 JavaScript 应用程序的静态模块打包工具。webpack 遵循的是 CommonJS 模块规范。
+            它将 JavaScript 应用程序中的每个文件都作为一个模块,找出它们的依赖关系并在内部从一个或多个入口点构建一个 依赖图(dependency graph),
+            然后将你项目中所需的每一个模块组合成一个或多个 bundles,它们均为静态资源,用于展示你的内容,最终将它们打包为可部署的静态资源。
+            一旦完成安装,你就可以通过 webpack CLI或 API 与其配合交互,用于编译 JavaScript 模块。
+            <h4>1.基本安装</h4>
+            <div>
+                首先我们创建一个目录并初始化 npm,然后 在本地安装 webpack,接着安装 webpack-cli(此工具用于在命令行中运行 webpack)。
+                mkdir webpack-demo
+                cd webpack-demo
+                npm init -y
+                npm install webpack webpack-cli --save-dev,安装之后就可以在命令行工具里使用webpack命令。
+                npm install webpack-dev-server --save-dev,用来开启热加载功能
+
+            </div>
+            <h4>2.webpack配置文件</h4>
+            <div>
+                我们总说webpack是一个编译打包工具,那到底要怎么用。事实上对于我们开发人员来说,webpack就是一个名为 webpack.config.js 的 .js配置文件。
+                我们要做的就是在这个配置文件里配置我们需要的功能即可,所以说webpack是什么就是一个 .js的配置文件,文件内导出了一个 webpack 配置的对象。
+                配置文件常见的最重要的几个属性如下:
+                const path = require('path');
+                //webpack.config.js
+                module.exports  = {
+                    mode: "production", // "production" | "development" | "none",项目开发模式属性,webpack 会根据不同值使用相对应模式的内置优化。
+                    entry: "./app/entry", // string | object | array,入口属性用来告诉webpack从哪里开始寻找依赖入口并进行编译打包。
+                    output: {
+                        filename:"bundle.js",编译后文件的名字。
+                        path: path.resolve(__dirname, "./dist"),打包存放位置。
+                    },出口属性则是用来配置指明webpack编译打包后文件的名字和存储位置。
+                    module: {
+                        rules: [// 来配置各种loader、解析器等的模块规则对象,决定了如何处理项目中的不同类型的模块(文件)。具体看包的官网描述怎么配就行。
+                            {
+                                test: /\.m?js$/,
+                                exclude: /(node_modules|bower_components)/,
+                                use: {
+                                    loader: 'babel-loader',加载器。
+                                    options: {
+                                        presets: ['@babel/preset-env']
+                                    }
+                                }
+                            },
+                        
+                        ]
+                    },解析各种模块的loader配置相关
+                    plugins: [
+                        new MiniCssExtractPlugin({filename:"main.css"}),
+                        new VueLoaderPlugin()
+                    ],插件
+                    devServer:{
+                        static:"./dist",
+                    },跟热加载webpack-dev-server配合使用的,开启静态资源的服务。
+                }
+                只要记住入口(entry)、出口(output)、加载器loader配置位置(module配置对象里的rules数组)、插件(plugins)这四个基本就可以了。
+            </div>
+            <h4>3.加载器loader</h4>
+            <div>
+                我们知道webpack是把JavaScript应用程序的每个文件比如 .css、.js、.html、.jpg、.less、.vue等等当作一个模块的,而loader(可以叫加载器或者转换器)就是用于对模块的源代码进行转换的工具。
+                不同的模块(也就是不同的文件js,css,html,png等等),就需要不同的loader来转换。
+                先安装然后使用,安装都是使用npm install loaderName
+                使用则是在webpack配置文件 webpack.config.js 中的 module.rules 配置中指定。
+                loader 从右到左（或从下到上）地取值(evaluate)/执行(execute)。
+                每个loader 配置对象都要有test和use两个选项。
+                <h5>1.常见loader</h5>
+                <div>
+                    具体可查看:https://webpack.docschina.org/loaders/ 以及第三方加载器 https://webpack.docschina.org/awesome-webpack/#loaders
+                    1.css样式和css预处理器相关
+                    样式:先通过css-loader转换再通过style-loader转换然后再打包。
+                        npm install --save-dev css-loader style-loader
+                    预处理器:
+                        sass:npm install -D sass-loader node-sass
+                        less:npm install -D less less-loader
+                        stylus:npm install -D stylus stylus-loader
+
+                    2.vue单文件组件处理
+                        npm install -D vue-loader vue-template-compiler
+
+                    3.babel转义
+                        npm install -D babel-core babel-loader
+                </div>
+            </div>
+            <h4>4.插件plugins</h4>
+            <div>
+                插件目的在于解决 loader 无法实现的其他事情,本质是一个具有 apply 方法的 JavaScript 对象。
+                apply 方法最终会被 webpack compiler 调用,并且在整个编译生命周期都可以访问 compiler 对象。
+                使用:由于插件可以携带参数/选项,你必须在 webpack 配置中,向 plugins 属性传入一个 new 实例。
+                plugins: [
+                    //new 插件名(),可传参。
+                    new webpack.ProgressPlugin(),
+                    new HtmlWebpackPlugin({ template: './src/index.html' }),
+                ],
+                <h5>1.常见插件</h5>
+                <div>
+                    其它插件可查看:https://webpack.docschina.org/plugins/ 以及第三方插件 https://webpack.docschina.org/awesome-webpack/#webpack-plugins
+                    1. mini-css-extract-plugin插件用来将各处的css提取出来并生成一个 main.css文件最终在入口html文件里通过link引入。
+                    安装:npm install --save-dev mini-css-extract-plugin
+                    使用:
+                        plugins: [
+                            new MiniCssExtractPlugin({filename:"main.css"}),
+                        ],
+
+                    2. 单文件组件
+                    安装:npm install -D vue-loader vue-template-compiler
+                    使用:
+                        plugins: [
+                            // 请确保引入这个插件！,保证复制一份其它规则到 .vue文件中
+                            new VueLoaderPlugin()
+                        ],
+
+                    3. HtmlWebpackPlugin 插件简化了 HTML 文件的创建,作用是为你生成一个 HTML5 文件。
+                    并在 body 中使用 script 标签引入你所有 webpack 生成的 bundle。
+                    可以不配置也可工作默认生成dist/index.html,也可以传入一个配置对象指定配置。
+                    安装:npm install --save-dev html-webpack-plugin
+                    使用:
+                        plugins: [
+                            new HtmlWebpackPlugin({
+                                title:"藏青安的博客",
+                                template:"./public/index.html" //指定编译模板
+                            }),
+                        ],
+                </div>
+            </div>
+            到处webpack的基础知识和用法都学习了,剩下的遇到问题看官网学习积累了。
+        </div>
+    </div>
+
+
+</body>
+</html>

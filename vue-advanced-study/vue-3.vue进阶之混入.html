@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3.vue进阶之混入</title>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script>  -->
+    <script src="../vue-basic-study/Vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h3>1. 混入概念</h3>
+        <div>
+            混入 (mixin) 提供了一种非常灵活的方式,来分发 Vue 组件中的可复用功能。
+            一个混入对象可以包含任意组件选项。当组件使用混入对象时,所有混入对象的选项将被“混合”进入该组件本身的选项。
+            非常的好理解,就是另一个配置选项对象可以被放进现在组件里,如果含有同名选项那么这些选项将以恰当的方式进行“合并”。在发生冲突时以组件数据优先。
+            选项值为对象的就合并,例如 methods、components 和 directives,将被合并为同一个对象。两个对象键名冲突时,取组件对象的键值对。
+            同名钩子函数将合并为一个数组,因此都将被调用。另外,混入对象的钩子将在组件自身钩子之前调用。
+
+        </div>
+        <h3>2.混入定义</h3>
+        <div>
+            混入和组件、过滤器等一样也有全局混入和局部混入两种。
+            <h4>1.全局混入</h4>
+            <div>
+                全局混入类似全局定义,影响注册之后所有创建的每个 Vue 实例。通过使用Vue提供的全局api--Vue.mixin({组件的配置对象})定义。
+                它接收一个配置对象参数,和组件的配置对象是一样的。
+                Vue.mixin({
+                    created: function () {
+                        var myOption = this.$options.myOption
+                        if (myOption) {
+                            console.log(myOption)
+                        }
+                    }
+                })
+            </div>
+            <h4>2.局部混入</h4>
+            <div>
+                使用组件的 mixins 选项实现,它接收一个混入对象的数组。
+                这些混入对象可以像正常的实例对象一样包含实例选项，这些选项将会被合并到最终的选项中。
+                mixins:[混入对象1,混入对象2,....]
+            </div>
+        </div>
+
+
+
+        <!-- 实战练习 -->
+        <hr>
+        <div>
+            <p>1.原来的数据</p>
+            <p>{{msg}}</p>
+            <p>2.混入进来的数据</p>
+            <p>{{message}}</p>
+        </div>
+
+
+    </div>
+
+<!-- js -->
+<script>
+// 为自定义的选项 'myOption' 注入一个处理器。
+Vue.mixin({
+  created: function () {
+    var myOption = this.$options.myOption
+    if (myOption) {
+      console.log(myOption)
+    }
+  }
+})
+// 局部混入对象
+const mixin = {
+  created: function () { console.log(1) },
+  data: function () {
+    return {
+      message: 'hello,我是混入的data数据',
+      foo: 'abc'
+    }
+  }
+}
+const vm = new Vue({
+    el:'#app',
+    data:{
+        msg:'欢迎开始学习vue' , 
+    },
+    created: function () { console.log(2) },
+    mixins:[mixin]
+})        
+</script>
+</body>
+</html>
